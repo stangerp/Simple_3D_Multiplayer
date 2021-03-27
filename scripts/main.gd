@@ -73,7 +73,7 @@ func _on_connected_to_server():
 	# Upon successful connection get the unique network ID
 	# This ID is used to name the character node so the network can distinguish the characters
 	var id = get_tree().get_network_unique_id()
-	$display/output.text = "Connected! ID: " + str(id)
+	$display/output.text = "Connected!\nID: " + str(id) + "\nServer IP: " + ip
 	# Hide a menu
 	$display/menu.visible = false
 	# Create a player
@@ -118,7 +118,7 @@ func create_player(id, is_peer):
 	character.name = str(id)
 	# Add the character to this (main) scene 
 	$characters.add_child(character)
-	# Spawn the character at random location within 40 units from the center
+	# Spawn the character at the center of the plain
 	character.global_transform.origin = Vector3(0,1,0)
 	# Enable the controller's camera if it's not an other player 
 	controller.get_node("camera").current = !is_peer
