@@ -107,6 +107,7 @@ func create_player(id, is_peer):
 	else:
 		# Player controller is our input which controls the character node
 		controller = player_scene.instance()
+	
 	# Instantiate the character
 	var character = character_scene.instance()
 	# Attach the controller to the character
@@ -118,7 +119,7 @@ func create_player(id, is_peer):
 	# Add the character to this (main) scene 
 	$characters.add_child(character)
 	# Spawn the character at random location within 40 units from the center
-	character.global_transform.origin = random_point(40, 20)
+	character.global_transform.origin = Vector3(0,1,0)
 	# Enable the controller's camera if it's not an other player 
 	controller.get_node("camera").current = !is_peer
 
@@ -126,7 +127,3 @@ func remove_player(id):
 	# Remove unused characters
 	$characters.get_node(str(id)).free()
 
-func random_point(area, height):
-	# Random point within some area units
-	randomize()
-	return Vector3(rand_range(-area, area), height, rand_range(-area, area))
