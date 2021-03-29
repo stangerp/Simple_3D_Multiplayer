@@ -1,5 +1,7 @@
 extends Node
 
+
+
 # Port must be open in router settings
 const PORT = 27015
 const MAX_PLAYERS = 32
@@ -19,7 +21,15 @@ onready var character_scene = preload("res://scenes/character.tscn")
 onready var player_scene = preload("res://scenes/player.tscn")
 onready var peer_scene = preload("res://scenes/peer.tscn")
 
+# create UPNP object for opening port on router
+onready var upnp = UPNP.new()
+
+#var playerHosting : bool = false
+onready var network = NetworkedMultiplayerENet.new()
+
+
 func _ready():
+	
 	# If we are exporting this game as a server for running in the background
 	if background_server:
 		# Just create server
@@ -27,6 +37,7 @@ func _ready():
 		# To keep it simple we are creating an uncontrollable server's character to prevent errors
 		# TO-DO: Create players upon reading configuration from the server
 		create_player(1, false)
+
 	else:
 		# Elsewise connect menu button events
 		var _host_pressed = $display/menu/host.connect("pressed", self, "_on_host_pressed")
@@ -41,7 +52,14 @@ func _on_host_pressed():
 	create_player(1, false)
 	# Hide a menu
 	$display/menu.visible = false
-	$display/output.text = "Server Started on IP: " + ip
+	
+	#attempting to add UPNP to server
+	upnp.discover(2000, 2, "InternetGatewayDevice")
+	var upnpResult = upnp.add_port_mapping(PORT)
+	#$display/output.text = upnp.query_external_address() + "\n" + str(upnpResult)
+	#$display/output.text = "Server Started on IP: " + ip
+
+
 
 # When Connect button is pressed
 func _on_connect_pressed():
@@ -53,13 +71,17 @@ func _on_connect_pressed():
 	var _server_disconnected = get_tree().connect("server_disconnected", self, "_on_server_disconnected")
 	
 	# Set up an ENet instance
-	var network = NetworkedMultiplayerENet.new()
 	network.create_client(ip, PORT)
 	get_tree().set_network_peer(network)
 
 func _on_quit_pressed():
 	# Quitting the game 
+	if get_tree().is_network_server():
+		# Tidy up any ports opened for Server Hosting
+		upnp.delete_port_mapping(PORT)
+	
 	get_tree().quit()
+	
 
 func _on_peer_connected(id):
 	# When other players connect a character and a child player controller are created
@@ -93,9 +115,11 @@ func create_server():
 	var _peer_connected = get_tree().connect("network_peer_connected", self, "_on_peer_connected")
 	var _peer_disconnected = get_tree().connect("network_peer_disconnected", self, "_on_peer_disconnected")
 	# Set up an ENet instance
-	var network = NetworkedMultiplayerENet.new()
+	#var network = NetworkedMultiplayerENet.new()
 	network.create_server(PORT, MAX_PLAYERS - 1)
 	get_tree().set_network_peer(network)
+	
+	$display/output.text = str(network)
 
 func create_player(id, is_peer):
 	# Create a character with a player or a peer controller attached
