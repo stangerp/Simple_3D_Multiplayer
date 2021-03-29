@@ -58,7 +58,7 @@ func _on_connect_pressed():
 	get_tree().set_network_peer(network)
 
 func _on_quit_pressed():
-	# Quitting the game
+	# Quitting the game 
 	get_tree().quit()
 
 func _on_peer_connected(id):
