@@ -1,6 +1,6 @@
 extends Camera
 
-var MOUSE_SENSITIVITY = 1
+var MOUSE_SENSITIVITY = 2
 
 # Get a reference to the character this controller is controlling
 onready var character : Character = owner.get_parent()
@@ -10,6 +10,8 @@ onready var head : Spatial = character.get_node("shape_head")
 func _ready():
 	# Make the character invisible to the camera
 	set_character_visible(false)
+	
+
 
 func _physics_process(_delta):
 	# Camera copies the position and rotation of the head shape

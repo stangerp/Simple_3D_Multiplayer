@@ -40,6 +40,10 @@ _global_script_class_icons={
 
 run/main_scene="res://scenes/main.tscn"
 
+[autoload]
+
+DebugOverlay="*res://scenes/DebugOverlay.tscn"
+
 [input]
 
 forward={

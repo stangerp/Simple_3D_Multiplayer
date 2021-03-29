@@ -24,12 +24,17 @@ onready var peer_scene = preload("res://scenes/peer.tscn")
 # create UPNP object for opening port on router
 onready var upnp = UPNP.new()
 
+
 #var playerHosting : bool = false
 onready var network = NetworkedMultiplayerENet.new()
 
 
 func _ready():
 	
+	#Show debug information
+	DebugOverlay.visible = true
+	$display/output.text = ""
+
 	# If we are exporting this game as a server for running in the background
 	if background_server:
 		# Just create server
@@ -56,6 +61,13 @@ func _on_host_pressed():
 	#attempting to add UPNP to server
 	upnp.discover(2000, 2, "InternetGatewayDevice")
 	var upnpResult = upnp.add_port_mapping(PORT)
+	var serverExternalIP = upnp.query_external_address()
+	
+	#DebugOverlay.add_monitor("upnp",self,"upnpResult")
+	DebugOverlay.add_monitor("External IP",self,"","get_server_external_ip",[serverExternalIP])
+	#DebugOverlay.add_monitor("Test",self,"This is a test")
+	#DebugOverlay.add_monitor("Text", self, "", "get_debug_text", ["This is a test!"])
+	
 	#$display/output.text = upnp.query_external_address() + "\n" + str(upnpResult)
 	#$display/output.text = "Server Started on IP: " + ip
 
@@ -119,7 +131,7 @@ func create_server():
 	network.create_server(PORT, MAX_PLAYERS - 1)
 	get_tree().set_network_peer(network)
 	
-	$display/output.text = str(network)
+	#$display/output.text = str(network)
 
 func create_player(id, is_peer):
 	# Create a character with a player or a peer controller attached
@@ -151,3 +163,6 @@ func remove_player(id):
 	# Remove unused characters
 	$characters.get_node(str(id)).free()
 
+
+func get_server_external_ip(extIP):
+	return extIP
