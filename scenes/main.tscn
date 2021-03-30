@@ -86,11 +86,11 @@ __meta__ = {
 }
 
 [node name="output" type="Label" parent="display"]
-margin_left = 30.0
-margin_top = 30.0
-margin_right = 512.0
-margin_bottom = 300.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 text = "Output"
+align = 2
+valign = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }

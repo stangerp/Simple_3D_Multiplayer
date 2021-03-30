@@ -44,6 +44,10 @@ run/main_scene="res://scenes/main.tscn"
 
 DebugOverlay="*res://scenes/DebugOverlay.tscn"
 
+[display]
+
+window/vsync/use_vsync=false
+
 [input]
 
 forward={

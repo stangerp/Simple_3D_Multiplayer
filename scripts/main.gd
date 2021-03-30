@@ -30,11 +30,6 @@ onready var network = NetworkedMultiplayerENet.new()
 
 
 func _ready():
-	
-	#Show debug information
-	DebugOverlay.visible = true
-	$display/output.text = ""
-
 	# If we are exporting this game as a server for running in the background
 	if background_server:
 		# Just create server
@@ -44,6 +39,7 @@ func _ready():
 		create_player(1, false)
 
 	else:
+		$display/output.text = ""
 		# Elsewise connect menu button events
 		var _host_pressed = $display/menu/host.connect("pressed", self, "_on_host_pressed")
 		var _connect_pressed = $display/menu/connect.connect("pressed", self, "_on_connect_pressed")
@@ -57,19 +53,20 @@ func _on_host_pressed():
 	create_player(1, false)
 	# Hide a menu
 	$display/menu.visible = false
+		
+	#Show debug information
+	DebugOverlay.visible = true
+
 	
 	#attempting to add UPNP to server
 	upnp.discover(2000, 2, "InternetGatewayDevice")
 	var upnpResult = upnp.add_port_mapping(PORT)
 	var serverExternalIP = upnp.query_external_address()
 	
-	#DebugOverlay.add_monitor("upnp",self,"upnpResult")
-	DebugOverlay.add_monitor("External IP",self,"","get_server_external_ip",[serverExternalIP])
-	#DebugOverlay.add_monitor("Test",self,"This is a test")
-	#DebugOverlay.add_monitor("Text", self, "", "get_debug_text", ["This is a test!"])
-	
-	#$display/output.text = upnp.query_external_address() + "\n" + str(upnpResult)
-	#$display/output.text = "Server Started on IP: " + ip
+	# Report details on to debug screen
+	DebugOverlay.add_monitor("External Public IP", self, "", "get_debug_text", [serverExternalIP])
+	DebugOverlay.add_monitor("Server IP", self, "", "get_debug_text", [ip])
+	DebugOverlay.add_monitor("UPNP Port Forwarding Status", self, "", "get_debug_text", [upnpResult])
 
 
 
@@ -85,6 +82,9 @@ func _on_connect_pressed():
 	# Set up an ENet instance
 	network.create_client(ip, PORT)
 	get_tree().set_network_peer(network)
+	
+	#Show debug information
+	DebugOverlay.visible = true
 
 func _on_quit_pressed():
 	# Quitting the game 
@@ -164,5 +164,5 @@ func remove_player(id):
 	$characters.get_node(str(id)).free()
 
 
-func get_server_external_ip(extIP):
-	return extIP
+func get_debug_text(message):
+	return "{0}".format([message])
