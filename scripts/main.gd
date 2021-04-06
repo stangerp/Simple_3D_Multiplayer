@@ -1,7 +1,5 @@
 extends Node
 
-
-
 # Port must be open in router settings
 const PORT = 27015
 const MAX_PLAYERS = 32
@@ -16,16 +14,14 @@ export var background_server : bool = false
 # Preload a character and controllers
 # Character is a node which we control by the controller node
 # This way we can extend the Controller class to create an AI controller
-# Peer controller represents other players in the network
 onready var character_scene = preload("res://scenes/character.tscn")
 onready var player_scene = preload("res://scenes/player.tscn")
+# Peer controller represents other players in the network
 onready var peer_scene = preload("res://scenes/peer.tscn")
 
 # create UPNP object for opening port on router
 onready var upnp = UPNP.new()
 
-
-#var playerHosting : bool = false
 onready var network = NetworkedMultiplayerENet.new()
 
 
@@ -39,11 +35,19 @@ func _ready():
 		create_player(1, false)
 
 	else:
-		$display/output.text = ""
-		# Elsewise connect menu button events
-		var _host_pressed = $display/menu/host.connect("pressed", self, "_on_host_pressed")
-		var _connect_pressed = $display/menu/connect.connect("pressed", self, "_on_connect_pressed")
-		var _quit_pressed = $display/menu/quit.connect("pressed", self, "_on_quit_pressed")
+		#connect menu button events
+		var _host_pressed = $menu/host.connect("pressed", self, "_on_host_pressed")
+		var _connect_pressed = $menu/connect.connect("pressed", self, "_on_connect_pressed")
+		var _quit_pressed = $menu/quit.connect("pressed", self, "_on_quit_pressed")
+		
+		# Connect network events
+		var _peer_connected = get_tree().connect("network_peer_connected", self, "_on_peer_connected")
+		var _peer_disconnected = get_tree().connect("network_peer_disconnected", self, "_on_peer_disconnected")
+		var _connected_to_server = get_tree().connect("connected_to_server", self, "_on_connected_to_server")
+		var _connection_failed = get_tree().connect("connection_failed", self, "_on_connection_failed")
+		var _server_disconnected = get_tree().connect("server_disconnected", self, "_on_server_disconnected")
+		
+		DebugOverlay.visible = false
 
 # When a Host button is pressed
 func _on_host_pressed():
@@ -52,13 +56,12 @@ func _on_host_pressed():
 	# Create our player, 1 is a reference for a host/server
 	create_player(1, false)
 	# Hide a menu
-	$display/menu.visible = false
+	$menu.visible = false
 		
 	#Show debug information
 	DebugOverlay.visible = true
 
-	
-	#attempting to add UPNP to server
+	#attempting to add UPNP port forwarding to server
 	upnp.discover(2000, 2, "InternetGatewayDevice")
 	var upnpResult = upnp.add_port_mapping(PORT)
 	var serverExternalIP = upnp.query_external_address()
@@ -68,32 +71,22 @@ func _on_host_pressed():
 	DebugOverlay.add_monitor("Server IP", self, "", "get_debug_text", [ip])
 	DebugOverlay.add_monitor("UPNP Port Forwarding Status", self, "", "get_debug_text", [upnpResult])
 
-
-
 # When Connect button is pressed
 func _on_connect_pressed():
-	# Connect network events
-	var _peer_connected = get_tree().connect("network_peer_connected", self, "_on_peer_connected")
-	var _peer_disconnected = get_tree().connect("network_peer_disconnected", self, "_on_peer_disconnected")
-	var _connected_to_server = get_tree().connect("connected_to_server", self, "_on_connected_to_server")
-	var _connection_failed = get_tree().connect("connection_failed", self, "_on_connection_failed")
-	var _server_disconnected = get_tree().connect("server_disconnected", self, "_on_server_disconnected")
-	
+
 	# Set up an ENet instance
 	network.create_client(ip, PORT)
 	get_tree().set_network_peer(network)
-	
-	#Show debug information
-	DebugOverlay.visible = true
+
+
 
 func _on_quit_pressed():
 	# Quitting the game 
 	if get_tree().is_network_server():
 		# Tidy up any ports opened for Server Hosting
 		upnp.delete_port_mapping(PORT)
-	
 	get_tree().quit()
-	
+
 
 func _on_peer_connected(id):
 	# When other players connect a character and a child player controller are created
@@ -107,20 +100,26 @@ func _on_connected_to_server():
 	# Upon successful connection get the unique network ID
 	# This ID is used to name the character node so the network can distinguish the characters
 	var id = get_tree().get_network_unique_id()
-	$display/output.text = "Connected!\nID: " + str(id) + "\nServer IP: " + ip
-	# Hide a menu
-	$display/menu.visible = false
+	$output.text = "Connected!\nID: " + str(id) + "\nServer IP: " + ip
+	# Hide menu
+	$menu.visible = false
+	#Show debug information
+	DebugOverlay.visible = true
 	# Create a player
 	create_player(id, false)
 
 func _on_connection_failed():
 	# Upon failed connection reset the RPC system
 	get_tree().set_network_peer(null)
-	$display/output.text = "Connection failed"
+	$output.text = "Connection failed"
+
 
 func _on_server_disconnected():
 	# If server disconnects just reload the game
 	var _reloaded = get_tree().reload_current_scene()
+	#set the mouse to be visible to allow user to select options
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	$output.text = "Server Disconnected"
 
 func create_server():
 	# Connect network events
@@ -130,8 +129,7 @@ func create_server():
 	#var network = NetworkedMultiplayerENet.new()
 	network.create_server(PORT, MAX_PLAYERS - 1)
 	get_tree().set_network_peer(network)
-	
-	#$display/output.text = str(network)
+
 
 func create_player(id, is_peer):
 	# Create a character with a player or a peer controller attached
@@ -172,4 +170,4 @@ func get_debug_text(message):
 
 
 func _on_showMenu(value : bool):
-	$display/menu.visible = value
+	$menu.visible = value
