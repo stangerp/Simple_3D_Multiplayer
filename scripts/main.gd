@@ -44,7 +44,7 @@ func _ready():
 		var _host_pressed = $display/menu/host.connect("pressed", self, "_on_host_pressed")
 		var _connect_pressed = $display/menu/connect.connect("pressed", self, "_on_connect_pressed")
 		var _quit_pressed = $display/menu/quit.connect("pressed", self, "_on_quit_pressed")
-		
+
 # When a Host button is pressed
 func _on_host_pressed():
 	# Create the server
@@ -143,6 +143,8 @@ func create_player(id, is_peer):
 	else:
 		# Player controller is our input which controls the character node
 		controller = player_scene.instance()
+		#Connect signal for showing the menu if is Player
+		controller.connect("showMenu",self,"_on_showMenu")
 	
 	# Instantiate the character
 	var character = character_scene.instance()
@@ -159,6 +161,7 @@ func create_player(id, is_peer):
 	# Enable the controller's camera if it's not an other player 
 	controller.get_node("camera").current = !is_peer
 
+
 func remove_player(id):
 	# Remove unused characters
 	$characters.get_node(str(id)).free()
@@ -166,3 +169,7 @@ func remove_player(id):
 
 func get_debug_text(message):
 	return "{0}".format([message])
+
+
+func _on_showMenu(value : bool):
+	$display/menu.visible = value
